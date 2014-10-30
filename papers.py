@@ -17,6 +17,7 @@ import inspect
 def decide(input_file, watchlist_file, countries_file):
     """
     Decides whether a traveller's entry into Kanadia should be accepted
+    The order of priority for the immigration decisions: quarantine, reject, secondary, and accept.
 
     :param input_file: The name of a JSON formatted file that contains cases to decide
     :param watchlist_file: The name of a JSON formatted file that contains names and passport numbers on a watchlist
@@ -36,24 +37,54 @@ def decide(input_file, watchlist_file, countries_file):
         data.append(temp)
 
     entries = data[0]
+    watchlist = data[1]
+    countries = data[2]
+
+
     # print(entries)
 
-
-
-    # Case 1 : If the required information for an entry record is incomplete, the traveler must be rejected.
-
+    # will hold a list of return string values
+    return_vals = []
 
     # entries is a list
     for entry in entries:
         # each entry is a dictionary
 
-        # check if record is complete
+        """
+        Case 1:
+        If the traveler is coming from or via a country that has a medical advisory,
+        he or she must be send to quarantine.
+        """
+        # some entries might not contain "via" info so check only for the ones that do
+        # also check if country is set and holds a value
+        if 'via' in entry.keys() and 'country' in entry['via'].keys() and entry['via']['country'] != '':
+            country_name = entry['via']['country']
+            # check if country name exists in countries file
+            if country_name in countries.keys():
+                    #print(countries[country_name]["medical_advisory"])
+                    if countries[country_name]["medical_advisory"] != '':
+                        return_vals.append('Quarantine')
+                        continue
+
+
+
+    # Case 2 : If the required information for an entry record is incomplete, the traveler must be rejected.
         if complete_record(entry):
-            print('continue')
+            print('')
             # DO FURTHER CHECKING
         else:
-            raise ValueError
+            return_vals.append('Reject')
 
+
+
+
+        """
+        If the traveller has a name or passport on the watch list,
+        she or he must be sent to secondary processing.
+        """
+
+
+    return return_vals
 
 def valid_passport_format(passport_number):
     """
@@ -103,7 +134,7 @@ def complete_record(entry):
         # check only is location type set in the entry
         if location in entry.keys():
             for lrqr in location_required:
-                if lrqr not in entry[location].keys():
+                if lrqr not in entry[location].keys() or entry[location][lrqr] == '':
                     rtr_value = False
 
     return rtr_value

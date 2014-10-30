@@ -14,7 +14,7 @@ __status__ = "Prototype"
 import pytest
 from papers import decide
 
-decide("example_entries.json", "watchlist.json", "countries.json")
+print(decide("example_entries.json", "watchlist.json", "countries.json"))
 
 """
 def test_basic():
