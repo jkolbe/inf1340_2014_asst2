@@ -61,30 +61,31 @@ def decide(input_file, watchlist_file, countries_file):
             country_name = entry['via']['country']
             # check if country name exists in countries file
             if country_name in countries.keys():
-                    #print(countries[country_name]["medical_advisory"])
-                    if countries[country_name]["medical_advisory"] != '':
-                        return_vals.append('Quarantine')
-                        continue
+                # print(countries[country_name]["medical_advisory"])
+                if countries[country_name]["medical_advisory"] != '':
+                    return_vals.append('Quarantine')
+                    continue
 
 
-
-    # Case 2 : If the required information for an entry record is incomplete, the traveler must be rejected.
-        if complete_record(entry):
-            print('')
-            # DO FURTHER CHECKING
-        else:
+        # Case 2 : If the required information for an entry record is incomplete, the traveler must be rejected.
+        if not complete_record(entry):
             return_vals.append('Reject')
-
-
-
 
         """
         If the traveller has a name or passport on the watch list,
         she or he must be sent to secondary processing.
         """
+        for person in watchlist:
+            if (entry['first_name'] == person['first_name'] and entry['last_name'] == person['last_name']) \
+                    or entry['passport'] == person['passport']:
+                return_vals.append('Secondary')
+
+
+
 
 
     return return_vals
+
 
 def valid_passport_format(passport_number):
     """
