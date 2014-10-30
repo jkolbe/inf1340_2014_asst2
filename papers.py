@@ -42,14 +42,11 @@ def decide(input_file, watchlist_file, countries_file):
     countries = data[2]
 
 
-    # print(entries)
-
     # will hold a list of return string values
     return_vals = []
 
     # entries is a list
     for entry in entries:
-        # each entry is a dictionary
 
         print(entry['first_name'])
         print('requires quarantine? ', check_quarantine(entry, countries))
@@ -145,3 +142,23 @@ def is_on_watchilst(entry, watchlist):
         if (entry['first_name'] == person['first_name'] and entry['last_name'] == person['last_name']) \
                 or entry['passport'] == person['passport']:
             return True
+
+
+def requires_visa(entry, countries):
+    """
+    Case A: If the reason for entry is to visit and the visitor has a passport from a country from which
+            a visitor visa is required, the traveller must have a valid visa.
+    Case B: If the reason for entry is transit and the visitor has a passport from a country from which
+            a transit visa is required, the traveller must have a valid visa.
+    :param entry: object to be checked
+    :param countries: object containing country details
+    :return: Boolean True, if entry requires a visa to enter the country
+    """
+
+def is_valid_visa(entry):
+    """
+    Check if traveller has a valid visa - one that is less than two years old.
+
+    :param entry: object to be checked
+    :return: Boolean True if traveller's visa is valid
+    """
