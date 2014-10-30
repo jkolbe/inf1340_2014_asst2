@@ -14,6 +14,7 @@ import json
 import inspect
 
 
+
 def decide(input_file, watchlist_file, countries_file):
     """
     Decides whether a traveller's entry into Kanadia should be accepted
@@ -50,37 +51,10 @@ def decide(input_file, watchlist_file, countries_file):
     for entry in entries:
         # each entry is a dictionary
 
-        """
-        Case 1:
-        If the traveler is coming from or via a country that has a medical advisory,
-        he or she must be send to quarantine.
-        """
-        # some entries might not contain "via" info so check only for the ones that do
-        # also check if country is set and holds a value
-        if 'via' in entry.keys() and 'country' in entry['via'].keys() and entry['via']['country'] != '':
-            country_name = entry['via']['country']
-            # check if country name exists in countries file
-            if country_name in countries.keys():
-                # print(countries[country_name]["medical_advisory"])
-                if countries[country_name]["medical_advisory"] != '':
-                    return_vals.append('Quarantine')
-                    continue
-
-
-        # Case 2 : If the required information for an entry record is incomplete, the traveler must be rejected.
-        if not complete_record(entry):
-            return_vals.append('Reject')
-
-        """
-        If the traveller has a name or passport on the watch list,
-        she or he must be sent to secondary processing.
-        """
-        for person in watchlist:
-            if (entry['first_name'] == person['first_name'] and entry['last_name'] == person['last_name']) \
-                    or entry['passport'] == person['passport']:
-                return_vals.append('Secondary')
-
-
+        print(entry['first_name'])
+        print('requires quarantine? ', check_quarantine(entry, countries))
+        print('is on watchlist? ', is_on_watchilst(entry, watchlist))
+        print('is complete? ', complete_record(entry))
 
 
 
@@ -114,6 +88,25 @@ def valid_date_format(date_string):
         return False
 
 
+def check_quarantine(entry, countries):
+    """
+    Case:   If the traveler is coming from or via a country that has
+            a medical advisory, he or she must be send to quarantine.
+    :param  entry: object to be checked
+    :param  countries: object containing country details
+    :return: Boolean True if entries requires quarantine
+    """
+
+    # some entries might not contain "via" info so check only for the ones that do
+    # also check if country is set and holds a value
+    if 'via' in entry.keys() and 'country' in entry['via'].keys() and entry['via']['country'] != '':
+        country_name = entry['via']['country']
+        # check if country name exists in countries file
+        if country_name in countries.keys():
+            # print(countries[country_name]["medical_advisory"])
+            return countries[country_name]["medical_advisory"] != ''
+
+
 def complete_record(entry):
     """
     Checks whether an entry consists of all required information
@@ -139,3 +132,16 @@ def complete_record(entry):
                     rtr_value = False
 
     return rtr_value
+
+
+def is_on_watchilst(entry, watchlist):
+    """
+    Case: If the traveller has a name or passport on the watch list, she or he must be sent to secondary processing.
+    :param entry: object to be checked
+    :param watchlist: list of objects containing watchlist entries
+    :return: Boolean True if entry is on the watchlist
+    """
+    for person in watchlist:
+        if (entry['first_name'] == person['first_name'] and entry['last_name'] == person['last_name']) \
+                or entry['passport'] == person['passport']:
+            return True
