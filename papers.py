@@ -11,7 +11,7 @@ __status__ = "Prototype"
 import re
 import datetime
 import json
-import inspect
+from calendar import isleap
 
 
 
@@ -41,19 +41,32 @@ def decide(input_file, watchlist_file, countries_file):
     watchlist = data[1]
     countries = data[2]
 
-
     # will hold a list of return string values
     return_vals = []
+
+
 
     # entries is a list
     for entry in entries:
 
+        if requires_quarantine(entry, countries):
+            return_vals.append('Quarantine')
+        else:
+            if complete_record(entry):
+                print('complete!')
+                if requires_visa(entry, countries) and not is_valid_visa(entry):
+                    return_vals.append({entry['first_name']: 'Reject'})
+            else:
+                return_vals.append('Reject')
+
+        """
+
         print(entry['first_name'])
-        print('requires quarantine? ', check_quarantine(entry, countries))
+        print('requires quarantine? ', requires_quarantine(entry, countries))
         print('is on watchlist? ', is_on_watchilst(entry, watchlist))
         print('is complete? ', complete_record(entry))
-
-
+        print('requires visa?', requires_visa(entry, countries))
+        """
 
     return return_vals
 
@@ -85,7 +98,7 @@ def valid_date_format(date_string):
         return False
 
 
-def check_quarantine(entry, countries):
+def requires_quarantine(entry, countries):
     """
     Case:   If the traveler is coming from or via a country that has
             a medical advisory, he or she must be send to quarantine.
@@ -154,6 +167,13 @@ def requires_visa(entry, countries):
     :param countries: object containing country details
     :return: Boolean True, if entry requires a visa to enter the country
     """
+    if entry["entry_reason"] == "visit" and countries[entry['home']['country']]['transit_visa_required'] == '1':
+        return True
+    elif entry['entry_reason'] == 'transit' and countries[entry['home']['country']]['visitor_visa_required'] == '1':
+        return True
+    else:
+        return False
+
 
 def is_valid_visa(entry):
     """
@@ -162,3 +182,27 @@ def is_valid_visa(entry):
     :param entry: object to be checked
     :return: Boolean True if traveller's visa is valid
     """
+
+    #check if entry has a visa and if visa object is correctly formatted
+    if 'visa' in entry.keys() and 'date' in entry['visa'].keys() and 'code' in entry['visa'].keys() \
+            and entry['visa']['code'] != '' and valid_date_format(entry['visa']['date']):
+
+        # get today's date - return in YYYY-MM-DD format (exactly what we want)
+        today = datetime.date.today()
+
+        # visa date is a string value, must convert to date object
+        visa_date = (entry['visa']['date']).split('-')
+        visa_date = datetime.date(int(visa_date[0]), month=int(visa_date[1]), day=int(visa_date[2]))
+
+        # calculate day difference between today and visa's date
+        delta_t = today - visa_date
+
+        # check is less than 2 years = 730 or 731 if leap
+        two_years = 730
+        if isleap(today.year) or isleap(today.year - 1):
+            two_years += 1
+
+        if int(delta_t.days) < two_years:
+            return True
+
+    return False
