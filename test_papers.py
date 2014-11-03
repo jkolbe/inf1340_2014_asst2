@@ -14,9 +14,7 @@ __status__ = "Prototype"
 import pytest
 from papers import decide
 
-print(decide("example_entries.json", "watchlist.json", "countries.json"))
 
-"""
 def test_basic():
     assert decide("test_returning_citizen.json", "watchlist.json", "countries.json") == ["Accept", "Accept"]
     assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary"]
@@ -28,7 +26,7 @@ def test_files():
         decide("test_returning_citizen.json", "", "countries.json")
 
 # add functions for other tests
-"""
+
 
 # Add tests to check for incomplete entries
 # ex. missing passport, name being blank, missing region in location entry

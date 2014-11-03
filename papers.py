@@ -14,7 +14,6 @@ import json
 from calendar import isleap
 
 
-
 def decide(input_file, watchlist_file, countries_file):
     """
     Decides whether a traveller's entry into Kanadia should be accepted
@@ -42,33 +41,26 @@ def decide(input_file, watchlist_file, countries_file):
     countries = data[2]
 
     # will hold a list of return string values
-    return_vals = []
-
-
+    decisions = []
 
     # entries is a list
     for entry in entries:
-
+        # As Quarantine has the highest priority, we check this case first
         if requires_quarantine(entry, countries):
-            return_vals.append('Quarantine')
+            decisions.append('Quarantine')
         else:
-            if complete_record(entry):
-                print('complete!')
-                if requires_visa(entry, countries) and not is_valid_visa(entry):
-                    return_vals.append({entry['first_name']: 'Reject'})
+            # if entry is not complete, reject the traveller
+            if not complete_record(entry):
+                decisions.append('Reject')
+            # travellers with complete entry, continue to check for other cases
             else:
-                return_vals.append('Reject')
-
-        """
-
-        print(entry['first_name'])
-        print('requires quarantine? ', requires_quarantine(entry, countries))
-        print('is on watchlist? ', is_on_watchilst(entry, watchlist))
-        print('is complete? ', complete_record(entry))
-        print('requires visa?', requires_visa(entry, countries))
-        """
-
-    return return_vals
+                if requires_visa(entry, countries) and not is_valid_visa(entry):
+                    decisions.append('Reject')
+                elif is_on_watchilst(entry, watchlist):
+                    decisions.append('Secondary')
+                else:
+                    decisions.append('Accept')
+    return decisions
 
 
 def valid_passport_format(passport_number):
@@ -78,7 +70,6 @@ def valid_passport_format(passport_number):
     :return: Boolean; True if the format is valid, False otherwise
     """
     passport_format = re.compile('.{5}-.{5}-.{5}-.{5}-.{5}')
-
     if passport_format.match(passport_number):
         return True
     else:
@@ -100,12 +91,16 @@ def valid_date_format(date_string):
 
 def requires_quarantine(entry, countries):
     """
-    Case:   If the traveler is coming from or via a country that has
-            a medical advisory, he or she must be send to quarantine.
+    Checks if a traveler must be sent to quarantine, that is if
+    he or she is coming from or via a country that has
+    a medical advisory
+
     :param  entry: object to be checked
     :param  countries: object containing country details
     :return: Boolean True if entries requires quarantine
     """
+
+    return_value = False
 
     # some entries might not contain "via" info so check only for the ones that do
     # also check if country is set and holds a value
@@ -113,8 +108,16 @@ def requires_quarantine(entry, countries):
         country_name = entry['via']['country']
         # check if country name exists in countries file
         if country_name in countries.keys():
-            # print(countries[country_name]["medical_advisory"])
-            return countries[country_name]["medical_advisory"] != ''
+            # return value will be set to true if requires quarantine
+            return_value = countries[country_name]["medical_advisory"] != ''
+
+    # if passed through checking 'via', also check 'from' country
+    if not return_value:
+        if 'from' in entry.keys() and 'country' in entry['from'].keys() and entry['from']['country'] != '':
+            country_name = entry['from']['country']
+            return_value = countries[country_name]["medical_advisory"] != ''
+
+    return return_value
 
 
 def complete_record(entry):
@@ -167,9 +170,9 @@ def requires_visa(entry, countries):
     :param countries: object containing country details
     :return: Boolean True, if entry requires a visa to enter the country
     """
-    if entry["entry_reason"] == "visit" and countries[entry['home']['country']]['transit_visa_required'] == '1':
+    if entry["entry_reason"] == "transit" and countries[entry['home']['country']]['transit_visa_required'] == '1':
         return True
-    elif entry['entry_reason'] == 'transit' and countries[entry['home']['country']]['visitor_visa_required'] == '1':
+    elif entry['entry_reason'] == 'visit' and countries[entry['home']['country']]['visitor_visa_required'] == '1':
         return True
     else:
         return False
@@ -197,12 +200,12 @@ def is_valid_visa(entry):
         # calculate day difference between today and visa's date
         delta_t = today - visa_date
 
-        # check is less than 2 years = 730 or 731 if leap
-        two_years = 730
-        if isleap(today.year) or isleap(today.year - 1):
-            two_years += 1
+        # get date of 2 years back
+        two_years_ago = datetime.date(today.year - 2, month = today.month, day = today.day)
+        # calculate day difference between today and 2 years ago
+        two_years = today - two_years_ago
 
-        if int(delta_t.days) < two_years:
+        if delta_t.days < two_years.days:
             return True
 
     return False
