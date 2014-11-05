@@ -3,7 +3,7 @@
 """ Computer-based immigration office for Kanadia """
 
 __author__ = 'Joanna Kolbe, Olena Kit'
-__email__ = "joannakolbe@gmail.com"
+__email__ = "joannakolbe@gmail.com, olena.kit@mail.utoronto.ca"
 __copyright__ = "2014 Joanna Kolbe, Olena Kit"
 __status__ = "Prototype"
 
