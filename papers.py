@@ -11,7 +11,6 @@ __status__ = "Prototype"
 import re
 import datetime
 import json
-from calendar import isleap
 
 
 def decide(input_file, watchlist_file, countries_file):
@@ -94,7 +93,6 @@ def requires_quarantine(entry, countries):
     Checks if a traveler must be sent to quarantine, that is if
     he or she is coming from or via a country that has
     a medical advisory
-
     :param  entry: object to be checked
     :param  countries: object containing country details
     :return: Boolean True if entries requires quarantine
@@ -105,7 +103,7 @@ def requires_quarantine(entry, countries):
     # some entries might not contain "via" info so check only for the ones that do
     # also check if country is set and holds a value
     if 'via' in entry.keys() and 'country' in entry['via'].keys() and entry['via']['country'] != '':
-        country_name = entry['via']['country']
+        country_name = entry['via']['country'].upper()
         # check if country name exists in countries file
         if country_name in countries.keys():
             # return value will be set to true if requires quarantine
@@ -114,8 +112,9 @@ def requires_quarantine(entry, countries):
     # if passed through checking 'via', also check 'from' country
     if not return_value:
         if 'from' in entry.keys() and 'country' in entry['from'].keys() and entry['from']['country'] != '':
-            country_name = entry['from']['country']
-            return_value = countries[country_name]["medical_advisory"] != ''
+            country_name = entry['from']['country'].upper()
+            if country_name in countries.keys():
+                return_value = countries[country_name]["medical_advisory"] != ''
 
     return return_value
 
@@ -144,6 +143,9 @@ def complete_record(entry):
                 if lrqr not in entry[location].keys() or entry[location][lrqr] == '':
                     rtr_value = False
 
+    if not valid_passport_format(entry['passport']):
+        rtr_value = False
+
     return rtr_value
 
 
@@ -155,8 +157,9 @@ def is_on_watchilst(entry, watchlist):
     :return: Boolean True if entry is on the watchlist
     """
     for person in watchlist:
-        if (entry['first_name'] == person['first_name'] and entry['last_name'] == person['last_name']) \
-                or entry['passport'] == person['passport']:
+        if (entry['first_name'].upper() == person['first_name'].upper() and
+                entry['last_name'].upper() == person['last_name'].upper()) or \
+                entry['passport'].upper() == person['passport'].upper():
             return True
 
 
@@ -170,9 +173,11 @@ def requires_visa(entry, countries):
     :param countries: object containing country details
     :return: Boolean True, if entry requires a visa to enter the country
     """
-    if entry["entry_reason"] == "transit" and countries[entry['home']['country']]['transit_visa_required'] == '1':
+    if entry["entry_reason"].lower() == "transit" and \
+            countries[entry['home']['country']]['transit_visa_required'] == '1':
         return True
-    elif entry['entry_reason'] == 'visit' and countries[entry['home']['country']]['visitor_visa_required'] == '1':
+    elif entry['entry_reason'].lower() == 'visit' and \
+            countries[entry['home']['country']]['visitor_visa_required'] == '1':
         return True
     else:
         return False
@@ -186,7 +191,7 @@ def is_valid_visa(entry):
     :return: Boolean True if traveller's visa is valid
     """
 
-    #check if entry has a visa and if visa object is correctly formatted
+    # check if entry has a visa and if visa object is correctly formatted
     if 'visa' in entry.keys() and 'date' in entry['visa'].keys() and 'code' in entry['visa'].keys() \
             and entry['visa']['code'] != '' and valid_date_format(entry['visa']['date']):
 
@@ -201,7 +206,7 @@ def is_valid_visa(entry):
         delta_t = today - visa_date
 
         # get date of 2 years back
-        two_years_ago = datetime.date(today.year - 2, month = today.month, day = today.day)
+        two_years_ago = datetime.date(today.year - 2, month=today.month, day=today.day)
         # calculate day difference between today and 2 years ago
         two_years = today - two_years_ago
 
