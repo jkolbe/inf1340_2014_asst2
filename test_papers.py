@@ -54,7 +54,7 @@ def test_incomplete():
     # Index 1: Invalid birth date
     # Index 2: Invalid visa date
     # Index 3: Invalid visa code **THIS ONE SHOULD BE REJECTED**
-    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Accept"]
+    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject"]
 
 
 # Visa tests
