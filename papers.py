@@ -143,7 +143,7 @@ def complete_record(entry):
                 if lrqr not in entry[location].keys() or entry[location][lrqr] == '':
                     rtr_value = False
 
-    if not valid_passport_format(entry['passport']):
+    if not valid_passport_format(entry['passport']) or not valid_date_format(entry['birth_date']):
         rtr_value = False
 
     return rtr_value

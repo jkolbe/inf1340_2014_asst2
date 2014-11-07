@@ -49,3 +49,10 @@ def test_incomplete():
     ### Index 0: Invalid passport
     ### Index 1: Invalid birth date
     assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject"]
+
+'''
+some other possible tests:
+- testing for precedence of "Quarantine" over "Reject", "Reject" over "Secondary", etc.
+- testing for case mismatch (e.g. if person listed under watchlist is named PIEDAD is listed as piedad) - should still pass
+- testing for expired visas
+'''
