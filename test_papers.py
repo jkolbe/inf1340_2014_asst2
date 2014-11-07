@@ -41,16 +41,20 @@ def test_files():
 def test_incomplete():
     # Test blank entries
     # Index 0: Blank passport
-    # Index 1: Blank name
-    # Index 2: Blank location
-    # Index 3: Blank entry reason
-    assert decide("test_blank.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject"]
+    # Index 1: Blank first name
+    # Index 2: Blank last name
+    # Index 3: Blank birth date
+    # Index 4: Blank home country
+    # Index 5: Blank from country
+    # Index 6: Blank entry reason
+    assert decide("test_blank.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject",
+                                                                             "Reject", "Reject", "Reject"]
     # Test invalid entries
     # Index 0: Invalid passport
     # Index 1: Invalid birth date
     # Index 2: Invalid visa date
     # Index 3: Invalid visa code **THIS ONE SHOULD BE REJECTED**
-    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject"]
+    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Accept"]
 
 
 # Visa tests
