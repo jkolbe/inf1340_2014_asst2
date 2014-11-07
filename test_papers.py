@@ -19,7 +19,7 @@ def test_basic():
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
 
 
-# Test when files are not found
+# File not found tests
 def test_files():
     with pytest.raises(FileNotFoundError):
         decide("", "", "")
@@ -37,22 +37,49 @@ def test_files():
         decide("test_quarantine.json", "watchlist.json", "")
 
 
-# Test when files are incomplete
+# Incomplete file tests
 def test_incomplete():
     # Test blank entries
-    ### Index 0: Blank passport
-    ### Index 1: Blank name
-    ### Index 2: Blank location
-    ### Index 3: Blank entry reason
+    # Index 0: Blank passport
+    # Index 1: Blank name
+    # Index 2: Blank location
+    # Index 3: Blank entry reason
     assert decide("test_blank.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject"]
     # Test invalid entries
-    ### Index 0: Invalid passport
-    ### Index 1: Invalid birth date
-    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject"]
+    # Index 0: Invalid passport
+    # Index 1: Invalid birth date
+    # Index 2: Invalid visa date
+    # Index 3: Invalid visa code **THIS ONE SHOULD BE REJECTED**
+    assert decide("test_invalid.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject", "Reject"]
 
-'''
-some other possible tests:
-- testing for precedence of "Quarantine" over "Reject", "Reject" over "Secondary", etc.
-- testing for case mismatch (e.g. if person listed under watchlist is named PIEDAD is listed as piedad) - should still pass
-- testing for expired visas
-'''
+
+# Visa tests
+def test_visa():
+    # Index 0: Valid visa and entry is to visit
+    # Index 1: Expired visa and entry is to visit
+    # Index 2: Valid visa and entry is transit
+    # Index 3: Expired visa and entry is transit
+    assert decide("test_visa.json", "watchlist.json", "countries.json") == ["Accept", "Reject", "Accept", "Reject"]
+
+
+# Case mistmatch tests
+def test_case():
+    # Index 0: Passport, first name, last name, and country codes in uppercase
+    # Index 1: Passport in lowercase
+    # Index 2: First name and last name in lowercase
+    # Index 3: Country codes in lowercase
+    assert decide("test_case.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary",
+                                                                            "Secondary"]
+
+
+# Precedence tests
+def test_precedence():
+    # Index 0: Quarantine over Reject - reject due to expired passport, but quarantine due to medical advisory
+    # Index 1: Quarantine over Secondary -secondary due to passport on watchlist, but quarantine due to medical advisory
+    # Index 2: Quarantine over Accept - accept due to returning to KAN, but quarantine due to medical advisory
+    # Index 3: Reject over Secondary - secondary due to passport on watchlist, but reject due to blank name
+    # Index 4: Reject over Accept - accept due to returning to KAN, but reject due to invalid passport
+    # Index 5: Secondary over Accept - accept due to returning to KAN, but secondary due to passport on watchlist
+    assert decide("test_precedence.json", "watchlist.json", "countries.json") == ["Quarantine", "Quarantine",
+                                                                                  "Quarantine", "Reject", "Reject",
+                                                                                  "Secondary"]
