@@ -75,6 +75,19 @@ def valid_passport_format(passport_number):
         return False
 
 
+def valid_visa_code_format(visa_code):
+    """
+    Checks whether a visa code is two sets of five alpha-number characters separated by dashes
+    :param visa_code:
+    :return:  Boolean; True if the format is valid, False otherwise
+    """
+    visa_code_format = re.compile('.{5}-.{5}')
+    if visa_code_format.match(visa_code):
+        return True
+    else:
+        return False
+
+
 def valid_date_format(date_string):
     """
     Checks whether a date has the format YYYY-mm-dd in numbers
@@ -193,7 +206,8 @@ def is_valid_visa(entry):
 
     # check if entry has a visa and if visa object is correctly formatted
     if 'visa' in entry.keys() and 'date' in entry['visa'].keys() and 'code' in entry['visa'].keys() \
-            and entry['visa']['code'] != '' and valid_date_format(entry['visa']['date']):
+            and entry['visa']['code'] != '' and valid_date_format(entry['visa']['date']) \
+            and valid_visa_code_format(entry['visa']['code']):
 
         # get today's date - return in YYYY-MM-DD format (exactly what we want)
         today = datetime.date.today()
