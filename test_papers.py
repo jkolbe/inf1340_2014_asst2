@@ -63,7 +63,7 @@ def test_visa():
     # Index 1: Expired visa and entry is to visit
     # Index 2: Valid visa and entry is transit
     # Index 3: Expired visa and entry is transit
-    # Index 4: Valid visa and entry is visit-  from and via country both require visa
+    # Index 4: Valid visa and entry is visit - from and via country both require visa
     # Index 5: Valid visa and entry is visit - from country requires visa and via country does not
     # Index 6: Valid visa and entry is visit - via country requires visa and from country does not
     assert decide("test_visa.json", "watchlist.json", "countries.json") == ["Accept", "Reject", "Accept", "Reject",
