@@ -69,7 +69,8 @@ def decide(input_file, watchlist_file, countries_file):
                 decisions.append('Reject')
             # travellers with complete entry, continue to check for other cases
             else:
-                if requires_visa(entry, countries) and not is_valid_visa(entry):
+                if requires_visa(entry, countries) \
+                        and not is_valid_visa(entry):
                     decisions.append('Reject')
                 elif is_on_watchilst(entry, watchlist):
                     decisions.append('Secondary')
@@ -134,19 +135,19 @@ def requires_quarantine(entry, countries):
     # also check if country is set and holds a value
     if 'via' in entry.keys() and 'country' in entry['via'].keys() and \
             entry['via']['country'] != '':
-        country_name = entry['via']['country'].upper()
+        c_name = entry['via']['country'].upper()
         # check if country name exists in countries file
-        if country_name in countries.keys():
+        if c_name in countries.keys():
             # return value will be set to true if requires quarantine
-            return_value = countries[country_name]["medical_advisory"] != ''
+            return_value = countries[c_name]["medical_advisory"] != ''
 
     # if passed through checking 'via', also check 'from' country
     if not return_value:
         if 'from' in entry.keys() and 'country' in entry['from'].keys() and \
                 entry['from']['country'] != '':
-            country_name = entry['from']['country'].upper()
-            if country_name in countries.keys():
-                return_value = countries[country_name]["medical_advisory"] != ''
+            c_name = entry['from']['country'].upper()
+            if c_name in countries.keys():
+                return_value = countries[c_name]["medical_advisory"] != ''
 
     return return_value
 
@@ -212,10 +213,12 @@ def requires_visa(entry, countries):
     :return: Boolean True, if entry requires a visa to enter the country
     """
     if entry["entry_reason"].lower() == "transit" and \
-            countries[entry['home']['country']]['transit_visa_required'] == '1':
+            countries[entry['home']['country']]['transit_visa_required'] \
+            == '1':
         return True
     elif entry['entry_reason'].lower() == 'visit' and \
-            countries[entry['home']['country']]['visitor_visa_required'] == '1':
+            countries[entry['home']['country']]['visitor_visa_required'] \
+            == '1':
         return True
     else:
         return False
@@ -239,8 +242,8 @@ def is_valid_visa(entry):
 
         # visa date is a string value, must convert to date object
         visa_date = (entry['visa']['date']).split('-')
-        visa_date = datetime.date(int(visa_date[0]),
-                                  month=int(visa_date[1]), day=int(visa_date[2]))
+        visa_date = datetime.date(int(visa_date[0]), month=int(visa_date[1]),
+                                  day=int(visa_date[2]))
 
         # calculate day difference between today and visa's date
         delta_t = today - visa_date
