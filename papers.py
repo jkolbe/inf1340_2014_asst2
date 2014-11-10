@@ -16,18 +16,24 @@ import json
 def decide(input_file, watchlist_file, countries_file):
     """
     Decides whether a traveller's entry into Kanadia should be accepted
-    The order of priority for the immigration decisions: quarantine, reject, secondary, and accept.
+    The order of priority for the immigration decisions: quarantine,
+    reject, secondary, and accept.
 
-    :param input_file: The name of a JSON formatted file that contains cases to decide
-    :param watchlist_file: The name of a JSON formatted file that contains names and passport numbers on a watchlist
-    :param countries_file: The name of a JSON formatted file that contains country data, such as whether
-        an entry or transit visa is required, and whether there is currently a medical advisory
-    :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
+    :param  input_file: The name of a JSON formatted file that contains
+            cases to decide
+    :param  watchlist_file: The name of a JSON formatted file that contains
+            names and passport numbers on a watchlist
+    :param countries_file: The name of a JSON formatted file that contains
+            country data, such as whether an entry or transit visa is
+            required, and whether there is currently a medical advisory
+    :return: List of strings. Possible values of strings are:
+             "Accept", "Reject", "Secondary", and "Quarantine"
     :raises: TypeError is input files is not a list of objects
     """
 
     # iterate through files, read and store json value for each in data list
-    # data[0] will contain the entries, data[1] the watchlist and data[2] the countries
+    # data[0] will contain the entries, data[1] the watchlist and
+    # data[2] the countries
     data = []
     files = [input_file, watchlist_file, countries_file]
     for file in files:
@@ -74,7 +80,8 @@ def decide(input_file, watchlist_file, countries_file):
 
 def valid_passport_format(passport_number):
     """
-    Checks whether a passport number is five sets of five alpha-number characters separated by dashes
+    Checks whether a passport number is five sets of five alpha-number
+    characters separated by dashes
     :param passport_number: alpha-numeric string
     :return: Boolean; True if the format is valid, False otherwise
     """
@@ -87,7 +94,8 @@ def valid_passport_format(passport_number):
 
 def valid_visa_code_format(visa_code):
     """
-    Checks whether a visa code is two sets of five alpha-number characters separated by dashes
+    Checks whether a visa code is two sets of five alpha-number characters
+    separated by dashes
     :param visa_code:
     :return:  Boolean; True if the format is valid, False otherwise
     """
@@ -122,9 +130,10 @@ def requires_quarantine(entry, countries):
     """
     return_value = False
 
-    # some entries might not contain "via" info so check only for the ones that do
+    # some entries might not contain "via" so check only for the ones that do
     # also check if country is set and holds a value
-    if 'via' in entry.keys() and 'country' in entry['via'].keys() and entry['via']['country'] != '':
+    if 'via' in entry.keys() and 'country' in entry['via'].keys() and \
+            entry['via']['country'] != '':
         country_name = entry['via']['country'].upper()
         # check if country name exists in countries file
         if country_name in countries.keys():
@@ -133,7 +142,8 @@ def requires_quarantine(entry, countries):
 
     # if passed through checking 'via', also check 'from' country
     if not return_value:
-        if 'from' in entry.keys() and 'country' in entry['from'].keys() and entry['from']['country'] != '':
+        if 'from' in entry.keys() and 'country' in entry['from'].keys() and \
+                entry['from']['country'] != '':
             country_name = entry['from']['country'].upper()
             if country_name in countries.keys():
                 return_value = countries[country_name]["medical_advisory"] != ''
@@ -148,7 +158,8 @@ def complete_record(entry):
     :return: Boolean True if complete information
     """
     rtr_value = True
-    required = ['first_name', 'last_name', 'birth_date', 'passport', 'home', 'from', 'entry_reason']
+    required = ['first_name', 'last_name', 'birth_date', 'passport',
+                'home', 'from', 'entry_reason']
     locations = ['home', 'from', 'via']
     location_required = ['city', 'region', 'country']
 
@@ -157,15 +168,17 @@ def complete_record(entry):
         if rqr not in entry.keys() or entry[rqr] == '':
             rtr_value = False
 
-    # check each location object in entry (Home, From, Via)  for existence of city, region and country
+    # check each location object in entry (Home, From, Via)
+    #  for existence of city, region and country
     for location in locations:
         # check only is location type set in the entry
         if location in entry.keys():
-            for lrqr in location_required:
-                if lrqr not in entry[location].keys() or entry[location][lrqr] == '':
+            for r in location_required:
+                if r not in entry[location].keys() or entry[location][r] == '':
                     rtr_value = False
 
-    if not valid_passport_format(entry['passport']) or not valid_date_format(entry['birth_date']):
+    if not valid_passport_format(entry['passport']) or \
+            not valid_date_format(entry['birth_date']):
         rtr_value = False
 
     return rtr_value
@@ -173,7 +186,8 @@ def complete_record(entry):
 
 def is_on_watchilst(entry, watchlist):
     """
-    Case: If the traveller has a name or passport on the watch list, she or he must be sent to secondary processing.
+    Case: If the traveller has a name or passport on the watch list,
+          she or he must be sent to secondary processing.
     :param entry: object to be checked
     :param watchlist: list of objects containing watchlist entries
     :return: Boolean True if entry is on the watchlist
@@ -187,10 +201,12 @@ def is_on_watchilst(entry, watchlist):
 
 def requires_visa(entry, countries):
     """
-    Case A: If the reason for entry is to visit and the visitor has a passport from a country from which
-            a visitor visa is required, the traveller must have a valid visa.
-    Case B: If the reason for entry is transit and the visitor has a passport from a country from which
-            a transit visa is required, the traveller must have a valid visa.
+    Case A: If the reason for entry is to visit and the visitor has a passport
+            from a country from which a visitor visa is required, the
+            traveller must have a valid visa.
+    Case B: If the reason for entry is transit and the visitor has a passport
+            from a country from which a transit visa is required, the traveller
+            must have a valid visa.
     :param entry: object to be checked
     :param countries: object containing country details
     :return: Boolean True, if entry requires a visa to enter the country
@@ -223,13 +239,15 @@ def is_valid_visa(entry):
 
         # visa date is a string value, must convert to date object
         visa_date = (entry['visa']['date']).split('-')
-        visa_date = datetime.date(int(visa_date[0]), month=int(visa_date[1]), day=int(visa_date[2]))
+        visa_date = datetime.date(int(visa_date[0]),
+                                  month=int(visa_date[1]), day=int(visa_date[2]))
 
         # calculate day difference between today and visa's date
         delta_t = today - visa_date
 
         # get date of 2 years back
-        two_years_ago = datetime.date(today.year - 2, month=today.month, day=today.day)
+        two_years_ago = datetime.date(today.year-2,
+                                      month=today.month, day=today.day)
         # calculate day difference between today and 2 years ago
         two_years = today - two_years_ago
 
