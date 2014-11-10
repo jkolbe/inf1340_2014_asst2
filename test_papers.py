@@ -91,3 +91,13 @@ def test_precedence():
     assert decide("test_precedence.json", "watchlist.json", "countries.json") == ["Quarantine", "Quarantine",
                                                                                   "Quarantine", "Reject", "Reject",
                                                                                   "Secondary"]
+
+
+# proper input type format
+def test_input_file():
+    with pytest.raises(TypeError):
+        # file does not contain a list of entries
+        decide("test_input_file.json", "watchlist.json", "countries.json")
+    with pytest.raises(TypeError):
+        # entries in a list are not objects
+        decide("test_input_file_2.json", "watchlist.json", "countries.json")
