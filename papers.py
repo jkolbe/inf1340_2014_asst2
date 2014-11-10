@@ -23,6 +23,7 @@ def decide(input_file, watchlist_file, countries_file):
     :param countries_file: The name of a JSON formatted file that contains country data, such as whether
         an entry or transit visa is required, and whether there is currently a medical advisory
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
+    :raises: TypeError is input files is not a list of objects
     """
 
     # iterate through files, read and store json value for each in data list
@@ -42,8 +43,17 @@ def decide(input_file, watchlist_file, countries_file):
     # will hold a list of return string values
     decisions = []
 
+    # check if input type is a list
+    if type(entries) is not list:
+        raise TypeError('Invalid input file')
+
     # entries is a list
     for entry in entries:
+
+        # check if every entry in a list is an object
+        if type(entry) is not dict:
+            raise TypeError('Incorrect entry type')
+
         # As Quarantine has the highest priority, we check this case first
         if requires_quarantine(entry, countries):
             decisions.append('Quarantine')
@@ -110,7 +120,6 @@ def requires_quarantine(entry, countries):
     :param  countries: object containing country details
     :return: Boolean True if entries requires quarantine
     """
-
     return_value = False
 
     # some entries might not contain "via" info so check only for the ones that do
